@@ -3,7 +3,6 @@ package main
 import (
 	"cloudVigilante/backend/handlers"
 	"cloudVigilante/backend/models"
-	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
@@ -12,7 +11,7 @@ import (
 
 func main() {
 
-	db, err = models.ConnectToDB()
+	db, err := models.ConnectToDB()
 
 	if err != nil {
 		fmt.Println("Error connecting to db", err)
