@@ -23,6 +23,7 @@ type MachineProperties struct {
 	DeviceName string `json:"deviceName"`
 	MacAddress string `json:"macAddress"`
 	IPAddress  string `json:"ipAddress"`
+	TimeStamp  string `json:"timeStamp"`
 }
 
 type ProcessInfo struct {
@@ -30,6 +31,7 @@ type ProcessInfo struct {
 	ProcessName     string  `json:"processName"`
 	ProcessCommand  string  `json:"processCommand"`
 	ProcessCpuUsage float64 `json:"ProcessCpuUsage"`
+	ProcessMemUsage int64   `json:"ProcessMemUsage"`
 }
 
 type PerformanceData struct {
@@ -85,7 +87,7 @@ func ReceivePerformanceMetrics(w http.ResponseWriter, r *http.Request) {
 
 	performance := models.PerformanceData{
 		DeviceID:    performanceData.MachineProperties.DeviceID,
-		Timestamp:   "", // Adjust to include timestamp if available
+		Timestamp:   performanceData.MachineProperties.TimeStamp,
 		CPUUsage:    performanceData.TotalConsumption.TotalCPU,
 		RAMUsage:    performanceData.TotalConsumption.UsedMemory,
 		TotalMemory: performanceData.TotalConsumption.TotalMemory,
@@ -99,7 +101,7 @@ func ReceivePerformanceMetrics(w http.ResponseWriter, r *http.Request) {
 			Name:     process.ProcessName,
 			Command:  process.ProcessCommand,
 			CPUUsage: process.ProcessCpuUsage,
-			RAMUsage: 0, // Adjust if you have RAM usage data for processes
+			RAMUsage: process.ProcessMemUsage,
 		}
 	}
 
