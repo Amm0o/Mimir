@@ -38,11 +38,12 @@ type ProcessData struct {
 func CreatePerformanceDB(db *sql.DB, orgID string) error {
 
 	// Format db name and create it
-	dbName := fmt.Sprintf("Peformance_%s", orgID)
+	dbName := fmt.Sprintf("`Peformance_%s`", orgID)
 
 	_, err := db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", dbName))
 
 	if err != nil {
+		log.Printf("Error creating table %s, Error: %s", dbName, err)
 		return err
 	} else {
 		log.Printf("Created table %s", dbName)

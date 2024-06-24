@@ -7,7 +7,7 @@ import (
 )
 
 func ConnectToDB() (*sql.DB, error) {
-	db, err := sql.Open("mysql", "root:test@tcp(127.0.0.1:3306)/")
+	db, err := sql.Open("mysql", "cloudvigilante:cloudvigilante@tcp(127.0.0.1:3306)/")
 	if err != nil {
 		panic(err.Error())
 	}

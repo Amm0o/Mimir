@@ -29,7 +29,7 @@ type ProcessInfo struct {
 	ProcessPID      int     `json:"processPID"`
 	ProcessName     string  `json:"processName"`
 	ProcessCommand  string  `json:"processCommand"`
-	ProcessCPUUsage float64 `json:"processCpuUsage"`
+	ProcessCpuUsage float64 `json:"ProcessCpuUsage"`
 }
 
 type PerformanceData struct {
@@ -57,9 +57,13 @@ func ReceivePerformanceMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Print body out for debugging
+	// fmt.Println(string(body))
+
 	// Parse the JSON data
 	if err := json.Unmarshal(body, &performanceData); err != nil {
 		http.Error(w, "Invalid JSON data", http.StatusBadRequest)
+		fmt.Println(err)
 		return
 	}
 
@@ -94,7 +98,7 @@ func ReceivePerformanceMetrics(w http.ResponseWriter, r *http.Request) {
 			PID:      process.ProcessPID,
 			Name:     process.ProcessName,
 			Command:  process.ProcessCommand,
-			CPUUsage: process.ProcessCPUUsage,
+			CPUUsage: process.ProcessCpuUsage,
 			RAMUsage: 0, // Adjust if you have RAM usage data for processes
 		}
 	}
