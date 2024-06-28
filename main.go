@@ -23,13 +23,16 @@ func main() {
 
 	handlers.SetDB(db)
 
+	// Handle CORS
+	mux := http.NewServeMux()
+
 	// Handle POST routes
 	http.HandleFunc("/api/v1/postMetrics", handlers.ReceivePerformanceMetrics)
+	mux.Handle("/api/v1/cpumetrics", handlers.EnableCORS(http.HandlerFunc(handlers.RetrieveCPUMetrics)))
 
 	// Handle GET routes
-	http.HandleFunc("/api/v1/cpumetrics", handlers.RetrieveCPUMetrics)
 
 	log.Println("Server is running on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", mux))
 
 }
