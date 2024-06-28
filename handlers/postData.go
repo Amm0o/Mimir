@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -110,6 +111,8 @@ func ReceivePerformanceMetrics(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Error inserting performance data: %v", err), http.StatusInternalServerError)
 		return
 	}
+
+	log.Println("Inserted performance metrics successfully")
 
 	// Respond to the client
 	w.WriteHeader(http.StatusOK)

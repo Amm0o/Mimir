@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 )
 
 // DB data structures
@@ -38,7 +39,7 @@ type ProcessData struct {
 func CreatePerformanceDB(db *sql.DB, orgID string) error {
 
 	// Format db name and create it
-	dbName := fmt.Sprintf("`Peformance_%s`", orgID)
+	dbName := fmt.Sprintf("`Performance_%s`", orgID)
 
 	_, err := db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", dbName))
 
@@ -46,7 +47,7 @@ func CreatePerformanceDB(db *sql.DB, orgID string) error {
 		log.Printf("Error creating table %s, Error: %s", dbName, err)
 		return err
 	} else {
-		log.Printf("Created table %s", dbName)
+		log.Printf("Created database %s", dbName)
 	}
 
 	// Use the db just created
@@ -107,6 +108,11 @@ func InsertPerformanceData(db *sql.DB, orgID string, deviceData DeviceData, perf
 	dbName := fmt.Sprintf("PerformanceDB_%s", orgID)
 	_, err := db.Exec(fmt.Sprintf("USE %s", dbName))
 
+	// Trim device hostname to fix problem with random chars
+
+	deviceData.Hostname = strings.Replace(deviceData.Hostname, "\n", "", -1)
+	deviceData.Hostname = strings.Replace(deviceData.Hostname, "\r", "", -1)
+
 	// Insert device data if it does not exist
 	insertDeviceQuery := `INSERT INTO Devices (device_id, device_hostname, mac_address, ip_address) 
                           VALUES (?, ?, ?, ?)
@@ -117,8 +123,6 @@ func InsertPerformanceData(db *sql.DB, orgID string, deviceData DeviceData, perf
 		return err
 	}
 
-	log.Println("Inserted device data successfully")
-
 	// Insert performance metrics
 	insertPerfQuery := `INSERT INTO PerformanceMetrics (device_id, timestamp, cpu_usage, ram_usage, disk_usage) 
                         VALUES (?, ?, ?, ?, ?)`
@@ -127,8 +131,6 @@ func InsertPerformanceData(db *sql.DB, orgID string, deviceData DeviceData, perf
 	if err != nil {
 		return err
 	}
-
-	log.Println("Inserted performance metrics successfully")
 
 	// Get Metric ID from overall performance metric
 	metricID, err := result.LastInsertId()
@@ -147,8 +149,6 @@ func InsertPerformanceData(db *sql.DB, orgID string, deviceData DeviceData, perf
 		if err != nil {
 			return err
 		}
-
-		log.Println("Inserted process performance metrics successfully")
 	}
 
 	// all went ok

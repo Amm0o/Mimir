@@ -4,9 +4,10 @@ import (
 	"cloudVigilante/backend/handlers"
 	"cloudVigilante/backend/models"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"net/http"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
@@ -22,8 +23,11 @@ func main() {
 
 	handlers.SetDB(db)
 
-	// Handle routes
+	// Handle POST routes
 	http.HandleFunc("/api/v1/postMetrics", handlers.ReceivePerformanceMetrics)
+
+	// Handle GET routes
+	http.HandleFunc("/api/v1/cpumetrics", handlers.RetrieveCPUMetrics)
 
 	log.Println("Server is running on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
