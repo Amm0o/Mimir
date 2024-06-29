@@ -27,7 +27,8 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Handle POST routes
-	http.HandleFunc("/api/v1/postMetrics", handlers.ReceivePerformanceMetrics)
+	mux.Handle("/api/v1/postMetrics", handlers.EnableCORS(http.HandlerFunc(handlers.ReceivePerformanceMetrics)))
+	// http.HandleFunc("/api/v1/postMetrics", handlers.ReceivePerformanceMetrics)
 	mux.Handle("/api/v1/cpumetrics", handlers.EnableCORS(http.HandlerFunc(handlers.RetrieveCPUMetrics)))
 
 	// Handle GET routes

@@ -112,6 +112,7 @@ func ReceivePerformanceMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println(performance)
 	log.Println("Inserted performance metrics successfully")
 
 	// Respond to the client
