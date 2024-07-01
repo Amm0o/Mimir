@@ -200,7 +200,6 @@ func RetrieveRamMetrics(w http.ResponseWriter, r *http.Request) {
 
 	for name, metrics := range processGroups {
 		avgRam := ramUsageTotals[name] / int64(ramUsageCounts[name])
-		fmt.Println(avgRam)
 		groupedMetrics = append(groupedMetrics, RamProcessGroup{
 			ProcessName: name,
 			AvgRam:      avgRam,
