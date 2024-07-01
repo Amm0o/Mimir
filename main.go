@@ -28,8 +28,8 @@ func main() {
 
 	// Handle POST routes
 	mux.Handle("/api/v1/postMetrics", handlers.EnableCORS(http.HandlerFunc(handlers.ReceivePerformanceMetrics)))
-	// http.HandleFunc("/api/v1/postMetrics", handlers.ReceivePerformanceMetrics)
 	mux.Handle("/api/v1/cpumetrics", handlers.EnableCORS(http.HandlerFunc(handlers.RetrieveCPUMetrics)))
+	mux.Handle("/api/v1/rammetrics", handlers.EnableCORS(http.HandlerFunc(handlers.RetrieveRamMetrics)))
 
 	// Handle GET routes
 
