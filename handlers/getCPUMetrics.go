@@ -44,8 +44,15 @@ type CPUMetricsResponse struct {
 
 type ProcessGroup struct {
 	ProcessName string               `json:"processName"`
+	ProcessPID  int                  `json:"processPID"`
 	AvgCPU      float64              `json:"avgCpu"`
 	Metrics     []CPUMetricsResponse `json:"metrics"`
+}
+
+type ProcessMetrics struct {
+	ProcessName         string
+	TotalCPUConsumption float64
+	Metrics             map[int][]CPUMetricsResponse
 }
 
 // Function to handle the retrieval of CPU metrics
@@ -196,38 +203,58 @@ func RetrieveCPUMetrics(w http.ResponseWriter, r *http.Request) {
 		cpuMetrics = append(cpuMetrics, metric)
 	}
 
-	// Aggregate metrics by process name.
-	processGroups := make(map[string][]CPUMetricsResponse)
-	cpuUsageTotals := make(map[string]float64)
-	cpuUsageCounts := make(map[string]int)
-
+	// Aggregate metrics by ProcessName, then by ProcessPID.
+	processMetricsMap := make(map[string]*ProcessMetrics)
 	for _, metric := range cpuMetrics {
-		processName := metric.ProcessName // Minimize map lookups by storing repeated values in variables
-		processGroups[processName] = append(processGroups[processName], metric)
-		cpuUsageTotals[processName] += metric.ProcessCPUUsage
-		cpuUsageCounts[processName]++
+		processName := metric.ProcessName
+		pid := metric.ProcessPID
+
+		if _, exists := processMetricsMap[processName]; !exists {
+			processMetricsMap[processName] = &ProcessMetrics{
+				ProcessName:         processName,
+				TotalCPUConsumption: 0,
+				Metrics:             make(map[int][]CPUMetricsResponse),
+			}
+		}
+
+		processMetric := processMetricsMap[processName]
+		processMetric.TotalCPUConsumption += metric.ProcessCPUUsage
+		processMetric.Metrics[pid] = append(processMetric.Metrics[pid], metric)
 	}
 
-	// Preallocate groupedMetrics with the size of processGroups to avoid reallocation.
-	groupedMetrics := make([]ProcessGroup, 0, len(processGroups))
-
-	for name, metrics := range processGroups {
-		avgCPU := cpuUsageTotals[name] / float64(cpuUsageCounts[name])
-		groupedMetrics = append(groupedMetrics, ProcessGroup{
-			ProcessName: name,
-			AvgCPU:      avgCPU,
-			Metrics:     metrics,
-		})
+	// Convert map to slice for sorting.
+	var processMetricsSlice []ProcessMetrics
+	for _, v := range processMetricsMap {
+		processMetricsSlice = append(processMetricsSlice, *v)
 	}
 
-	// Sort the grouped metrics by AvgCPU in descending order.
-	sort.Slice(groupedMetrics, func(i, j int) bool {
-		return groupedMetrics[i].AvgCPU > groupedMetrics[j].AvgCPU
+	// Sort the slice by TotalCPUConsumption in descending order.
+	sort.Slice(processMetricsSlice, func(i, j int) bool {
+		return processMetricsSlice[i].TotalCPUConsumption > processMetricsSlice[j].TotalCPUConsumption
+	})
+
+	// Prepare the final structured response.
+	var finalResponse []ProcessGroup
+	for _, processMetric := range processMetricsSlice {
+		for pid, metrics := range processMetric.Metrics {
+			avgCPU := processMetric.TotalCPUConsumption / float64(len(metrics))
+			finalResponse = append(finalResponse, ProcessGroup{
+				ProcessName: processMetric.ProcessName,
+				ProcessPID:  pid,
+				AvgCPU:      avgCPU,
+				Metrics:     metrics,
+			})
+		}
+	}
+
+	// Sort the final response by AvgCPU in descending order.
+	sort.Slice(finalResponse, func(i, j int) bool {
+		return finalResponse[i].AvgCPU > finalResponse[j].AvgCPU
 	})
 
 	// Encode the structured response as JSON and send it to the client.
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(groupedMetrics); err != nil {
+	if err := json.NewEncoder(w).Encode(finalResponse); err != nil {
 		http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
 		return
 	}
