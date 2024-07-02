@@ -27,11 +27,12 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Handle POST routes
-	mux.Handle("/api/v1/postMetrics", handlers.EnableCORS(http.HandlerFunc(handlers.ReceivePerformanceMetrics)))
+	mux.Handle("/api/v1/postmetrics", handlers.EnableCORS(http.HandlerFunc(handlers.ReceivePerformanceMetrics)))
 	mux.Handle("/api/v1/cpumetrics", handlers.EnableCORS(http.HandlerFunc(handlers.RetrieveCPUMetrics)))
 	mux.Handle("/api/v1/rammetrics", handlers.EnableCORS(http.HandlerFunc(handlers.RetrieveRamMetrics)))
 
 	// Handle GET routes
+	mux.Handle("/api/v1/getdeviceinfo", handlers.EnableCORS((http.HandlerFunc(handlers.GetDeviceInfo))))
 
 	log.Println("Server is running on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))

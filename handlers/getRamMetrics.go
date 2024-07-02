@@ -111,11 +111,6 @@ func RetrieveRamMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	// Get the top process IDs using the new function
 	topProcessIDs, err := helpers.GetTopRamProcessIDs(db, dbName, deviceIDs, timeStart, timeEnd, numberOfProcesses)
 	if err != nil {
