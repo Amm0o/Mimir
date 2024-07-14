@@ -18,6 +18,8 @@ type DeviceInfoResponse struct {
 // /getDeviceInfo?tenantID=1234
 func GetDeviceInfo(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Println("GetDeviceInfo called")
+
 	var devices []DeviceInfoResponse
 
 	// Extract tenantID from URL

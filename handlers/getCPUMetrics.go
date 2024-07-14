@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -79,8 +80,25 @@ func RetrieveCPUMetrics(w http.ResponseWriter, r *http.Request) {
 	timeEnd := cpuMetricsRequest.Query.TimeRange.End
 	numberOfProcesses := cpuMetricsRequest.Query.NumberOfProcesses
 
+	// Validate the tenant ID
+	if tenantID == "" {
+		http.Error(w, "Tenant ID is required", http.StatusBadRequest)
+		return
+	}
+
 	// Determine the database name
 	dbName := fmt.Sprintf("Performance_%s", tenantID)
+
+	// Check if the tenant is registered
+	var exists int
+	query := fmt.Sprintf("SELECT EXISTS(SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '%s')", dbName)
+	err = db.QueryRow(query).Scan(&exists)
+
+	if exists == 0 {
+		log.Printf("DB: %s does not exist", dbName)
+		http.Error(w, fmt.Sprintf("Error checking tenant: %s", tenantID), http.StatusInternalServerError)
+		return
+	}
 
 	// If devices array is empty, query all devices
 	var deviceIDs []string

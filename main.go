@@ -33,6 +33,7 @@ func main() {
 
 	// Handle GET routes
 	mux.Handle("/api/v1/getdeviceinfo", handlers.EnableCORS((http.HandlerFunc(handlers.GetDeviceInfo))))
+	mux.Handle("/api/v1/onboard-device", handlers.EnableCORS((http.HandlerFunc(handlers.OnboarDevice))))
 
 	log.Println("Server is running on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))
