@@ -98,7 +98,7 @@ func OnboarDevice(w http.ResponseWriter, r *http.Request) {
 		Link string `json:"downloadLink"`
 	}
 
-	link := fmt.Sprintf("http://localhost:8000/onboard_%s.sh", deviceID)
+	link := fmt.Sprintf("http://localhost:8000/downloads/onboard_%s.sh", deviceID)
 
 	// Set the response header to application/json
 	w.Header().Set("Content-Type", "application/json")
