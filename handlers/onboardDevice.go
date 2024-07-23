@@ -58,7 +58,7 @@ func OnboarDevice(w http.ResponseWriter, r *http.Request) {
 	mkdir -p /opt/cloud-vigilante
 
 	# Generate the JSON object and store it
-	echo "{\"tenantID\": \"$tenantID\", \"deviceID\": \"$deviceID\"}" > /opt/cloud-vigilante/cloudVigilanteOnboarding.json
+	echo "{\"TenantID\": \"$tenantID\", \"DeviceID\": \"$deviceID\"}" > /opt/cloud-vigilante/cloudVigilanteOnboarding.json
 
 	echo "JSON object stored successfully."`, tenantID, deviceID)
 
