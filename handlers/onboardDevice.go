@@ -24,7 +24,7 @@ func generateDeviceID() string {
 func OnboarDevice(w http.ResponseWriter, r *http.Request) {
 
 	// To do is to create the logic behind getting the tenant associated with the user logged in
-	const tenantID = "6a63b790-eead-4e12-869c-2ca3a9da650d"
+	const tenantID = "9052ef58-b79e-4684-a026-f39fd6f8f717"
 	deviceID := ""
 	flag := true
 
