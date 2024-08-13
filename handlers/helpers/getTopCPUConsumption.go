@@ -3,58 +3,59 @@ package helpers
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 )
 
-func GetTopProcessIDs(db *sql.DB, dbName string, deviceIDs []string, timeStart string, timeEnd string, numberOfProcesses int) ([]int, error) {
-	// Construct the query to get the top N processes based on total CPU usage
-	queryPlaceholders := strings.Repeat("?,", len(deviceIDs))
-	queryPlaceholders = strings.TrimSuffix(queryPlaceholders, ",")
-	topProcessesQuery := fmt.Sprintf(`
-	    SELECT 
-	        psm.process_pid
-	    FROM 
-	        %s.PerformanceMetrics pm
-	    JOIN 
-	        %s.ProcessMetrics psm ON pm.metric_id = psm.metric_id
-	    WHERE 
-	        pm.device_id IN (%s)
-	        AND pm.timestamp BETWEEN ? AND ?
-	    GROUP BY 
-	        psm.process_pid
-	    ORDER BY 
-	        SUM(psm.process_cpu_usage) DESC
-	`, fmt.Sprintf("`%s`", dbName), fmt.Sprintf("`%s`", dbName), queryPlaceholders)
+func GetTopProcessIDs(db *sql.DB, dbName string, deviceIDs []string, timeStart string, timeEnd string, numberOfProcesses int) (map[string][]int, error) {
+	// Define a map to hold the device IDs and their corresponding arrays of PIDs
+	devicePIDsMap := make(map[string][]int)
 
-	// Add LIMIT clause only if numberOfProcesses is greater than 0
-	if numberOfProcesses > 0 {
-		topProcessesQuery += fmt.Sprintf(" LIMIT %d", numberOfProcesses)
-	}
+	// Iterate over each device ID to query the PIDs
+	for _, deviceID := range deviceIDs {
+		// Construct the query to get the top N processes based on total CPU usage for the current device ID
+		topProcessesQuery := fmt.Sprintf(`
+        SELECT 
+            psm.process_pid
+        FROM 
+            %s.PerformanceMetrics pm
+        JOIN 
+            %s.ProcessMetrics psm ON pm.metric_id = psm.metric_id
+        WHERE 
+            pm.device_id = ?
+            AND pm.timestamp BETWEEN ? AND ?
+        GROUP BY 
+            psm.process_pid
+        ORDER BY 
+            SUM(psm.process_cpu_usage) DESC
+    `, fmt.Sprintf("`%s`", dbName), fmt.Sprintf("`%s`", dbName))
 
-	// Prepare the arguments for the topProcessesQuery
-	args := make([]interface{}, len(deviceIDs)+2)
-	for i, id := range deviceIDs {
-		args[i] = id
-	}
-	args[len(deviceIDs)] = timeStart
-	args[len(deviceIDs)+1] = timeEnd
-
-	// Execute the subquery to get the top N processes
-	rows, err := db.Query(topProcessesQuery, args...)
-	if err != nil {
-		return nil, fmt.Errorf("error querying top processes: %v", err)
-	}
-	defer rows.Close()
-
-	// Collect the top process IDs
-	var topProcessIDs []int
-	for rows.Next() {
-		var processPID int
-		if err := rows.Scan(&processPID); err != nil {
-			return nil, fmt.Errorf("error scanning process PID: %v", err)
+		// Add LIMIT clause only if numberOfProcesses is greater than 0
+		if numberOfProcesses > 0 {
+			topProcessesQuery += fmt.Sprintf(" LIMIT %d", numberOfProcesses)
 		}
-		topProcessIDs = append(topProcessIDs, processPID)
+
+		// Prepare the arguments for the topProcessesQuery
+		args := []interface{}{deviceID, timeStart, timeEnd}
+
+		// Execute the query to get the top N processes for the current device ID
+		rows, err := db.Query(topProcessesQuery, args...)
+		if err != nil {
+			return nil, fmt.Errorf("error querying top processes for device %s: %v", deviceID, err)
+		}
+		defer rows.Close()
+
+		// Collect the top process IDs for the current device ID
+		var pids []int
+		for rows.Next() {
+			var processPID int
+			if err := rows.Scan(&processPID); err != nil {
+				return nil, fmt.Errorf("error scanning process PID for device %s: %v", deviceID, err)
+			}
+			pids = append(pids, processPID)
+		}
+
+		// Store the collected PIDs in the map
+		devicePIDsMap[deviceID] = pids
 	}
 
-	return topProcessIDs, nil
+	return devicePIDsMap, nil
 }

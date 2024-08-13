@@ -155,7 +155,6 @@ func RetrieveRamMetrics(w http.ResponseWriter, r *http.Request) {
 	deviceMetricsMap := make(map[string][]RamMetricsReponse)
 
 	// Construct the query for performance metrics for the identified top processes
-
 	for deviceID, pids := range devicePIDsMap {
 		performanceQuery := fmt.Sprintf(`
 		SELECT 
@@ -174,7 +173,6 @@ func RetrieveRamMetrics(w http.ResponseWriter, r *http.Request) {
 			AND pm.timestamp BETWEEN ? AND ?
 		ORDER BY 
 			pm.timestamp
-		LIMIT 1
 	`, fmt.Sprintf("`%s`", dbName), fmt.Sprintf("`%s`", dbName), strings.Trim(strings.Repeat("?,", len(pids)), ","))
 
 		// Prepare the arguments for the performanceQuery
